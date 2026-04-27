@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import joblib
 import re
@@ -24,6 +24,8 @@ def home():
 @app.post('/predict')
 def accept_text(input : textinput):
     cleaned_text = clean_text(input.text)
+    if not input.text.strip():   
+        raise HTTPException(status_code=400, detail="Text cannot be empty")
 
     vec_text = vectorizer.transform([cleaned_text])
     pred = model.predict(vec_text)
