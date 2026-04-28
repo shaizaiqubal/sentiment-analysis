@@ -2,8 +2,27 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import joblib
 import re
+import logging
 
-model = joblib.load("models/sentiment_model.pkl")
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('app.log'),  # writes to file
+        logging.StreamHandler()           # also prints to console
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
+try:
+    model = joblib.load("models/sentiment_model.pkl")
+    vectorizer = joblib.load("models/tfidf_vectorizer.pkl")
+    logger.info("Model and vectorizer loaded successfully")
+except Exception as e:
+    logger.error(f"Failed to load model: {e}")
+    raise
+
 vectorizer = joblib.load("models/tfidf_vectorizer.pkl")
 
 class textinput(BaseModel):
@@ -27,20 +46,17 @@ def home():
 @app.post('/predict')
 def accept_text(input : listinput):
     if not input.lists:
+        logger.error("Comment field empty")
         raise HTTPException(status_code=400, detail="Comment field empty")
-    cleaned_text = [clean_text(t) for t in input.lists]
-    vec_text = vectorizer.transform(cleaned_text)
-    pred = model.predict(vec_text)
-    return {"sentiments": pred.tolist()}
+    try:
+        logger.info(f"Batch prediction request received: {len(input.lists)} comments")
+        cleaned_text = [clean_text(t) for t in input.lists]
+        vec_text = vectorizer.transform(cleaned_text)
+        pred = model.predict(vec_text)
+        logger.info(f"Predictions complete")
+        return {"sentiments": pred.tolist()}
+    except Exception as e:
+        logger.error(f"Prediction failed: {e}")
+        raise HTTPException(status_code=500, detail="Prediction error")
 
 
-# @app.post('/predict')
-# def accept_text(input : textinput):
-#     cleaned_text = clean_text(input.text)
-#     if not input.text.strip():   
-#         raise HTTPException(status_code=400, detail="Text cannot be empty")
-
-#     vec_text = vectorizer.transform([cleaned_text])
-#     pred = model.predict(vec_text)
-#     sentiment = pred[0]
-#     return {"sentiment" : sentiment}

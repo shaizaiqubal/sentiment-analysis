@@ -7,7 +7,7 @@ load_dotenv()
 key = os.getenv("YOUTUBE_API_KEY")
 youtube = build("youtube" , "v3", developerKey=key)
 
-def get_data(url, max_comments=5):
+def get_data(url, max_comments=500):
     
     parsed = urlparse(url)
 
