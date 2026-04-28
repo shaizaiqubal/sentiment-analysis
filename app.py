@@ -28,14 +28,10 @@ def home():
 def accept_text(input : listinput):
     if not input.lists:
         raise HTTPException(status_code=400, detail="Comment field empty")
-    sentiments = []
-    for i in input.lists:
-        cleaned_text = clean_text(i)
-        vec_text = vectorizer.transform([cleaned_text])
-        pred = model.predict(vec_text)
-        sentiment = pred[0]
-        sentiments.append(sentiment)
-    return {"sentiments": sentiments}
+    cleaned_text = [clean_text(t) for t in input.lists]
+    vec_text = vectorizer.transform(cleaned_text)
+    pred = model.predict(vec_text)
+    return {"sentiments": pred.tolist()}
 
 
 # @app.post('/predict')

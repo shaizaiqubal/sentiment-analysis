@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 import plotly.express as px
 import requests
 import streamlit.components.v1 as components
@@ -17,12 +18,12 @@ if st.button("Analyse", type="primary", use_container_width=True):
         st.error("Please enter a YouTube URL.")
     else:
         with st.spinner("Fetching comments…"):
-            vid, vid_title, comments = get_data(url)
+            vid, vid_title, comments, likes = get_data(url)
 
         if not vid_title:
             st.error("Video not found — double-check the URL and try again.")
         else:
-            st.subheader(vid_title)
+            st.header(vid_title)
             st.divider()
 
             try:
@@ -35,17 +36,43 @@ if st.button("Analyse", type="primary", use_container_width=True):
                     result     = response.json()
                     sentiments = result["sentiments"]
 
-                    cont = len(sentiments)
-                    pos  = sentiments.count("positive")
-                    neg  = sentiments.count("negative")
-                    neu  = sentiments.count("neutral")
+                    df = pd.DataFrame({
+                        'comments' : comments,
+                        "likes" : likes,
+                        "sentiment" : sentiments
+                    })
+
+                    
+                    cont = len(df)
+
+                    total_likes = df['likes'].sum()
+
+                    if total_likes > 0:
+                        
+                        pos = df.query("sentiment == 'positive'")['likes'].sum()/total_likes
+                        neg = df.query("sentiment == 'negative'")['likes'].sum()/total_likes
+                        neu = df.query("sentiment == 'neutral'")['likes'].sum()/total_likes
+
+                    else:
+                        pos  = sentiments.count("positive") / cont
+                        neg  = sentiments.count("negative") / cont
+                        neu  = sentiments.count("neutral") / cont
+
+                    if pos > 0.7:
+                        st.success(" ↑ Overwhelmingly Positive")
+                    elif neg > 0.4:
+                        st.error(" ↓ Mostly Negative")
+                    elif neu >= pos and neu >= neg:
+                        st.info(" → Neutral Reception")
+                    else:
+                        st.warning(" → Mixed Reactions")
 
                     # Metrics
                     c1, c2, c3, c4 = st.columns(4)
                     c1.metric("Total",    cont)
-                    c2.metric("Positive", pos)
-                    c3.metric("Negative", neg)
-                    c4.metric("Neutral",  neu)
+                    c2.metric("Positive", f"{pos*100 : .1f}%")
+                    c3.metric("Negative", f"{neg*100 : .1f}%")
+                    c4.metric("Neutral",  f"{neu*100 : .1f}%")
 
                     st.divider()
 
@@ -53,6 +80,7 @@ if st.button("Analyse", type="primary", use_container_width=True):
                     chart_col, vid_col = st.columns(2, gap="large")
 
                     with chart_col:
+
                         fig = px.pie(
                             names=["Positive", "Negative", "Neutral"],
                             values=[pos, neg, neu],
@@ -75,7 +103,6 @@ if st.button("Analyse", type="primary", use_container_width=True):
                         )
 
                     st.divider()
-
                     
             except requests.exceptions.ConnectionError:
                 st.error("Could not connect to the prediction server.")

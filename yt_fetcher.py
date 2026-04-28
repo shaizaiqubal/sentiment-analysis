@@ -12,7 +12,7 @@ def get_data(url, max_comments=5):
     parsed = urlparse(url)
 
     if not parsed.netloc:
-        return None, None, []
+        return None, None, [], []
     
     if parsed.netloc == 'youtu.be':
         vid = parsed.path[1:]
@@ -25,12 +25,13 @@ def get_data(url, max_comments=5):
     res_title = req_title.execute()
 
     if not res_title['items']:
-        return vid, None, []
+        return vid, None, [], []
         
     vid_title = res_title['items'][0]['snippet']['title']
     
     #fetch comments
     comments = []
+    likes = []
     count = 0
     next_page_token = None
     
@@ -47,13 +48,15 @@ def get_data(url, max_comments=5):
         res_comments = req_comments.execute()
 
         if not res_comments['items']:
-            return vid, vid_title, []
+            return vid, vid_title, [], []
         
         else:
 
             for item in res_comments['items']:
                 comment_text = item['snippet']['topLevelComment']['snippet']['textDisplay']
+                like_count = int(item['snippet']['topLevelComment']['snippet']['likeCount'])
                 comments.append(comment_text)
+                likes.append(like_count)
                 count += 1
 
                 if count >= max_comments:
@@ -64,7 +67,7 @@ def get_data(url, max_comments=5):
             if not next_page_token:
                 break
 
-    return vid, vid_title, comments
+    return vid, vid_title, comments, likes
 
 
 #ALSO store likeCount → lets you: filter low-quality comments + weight sentiment later
