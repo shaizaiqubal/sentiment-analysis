@@ -41,7 +41,7 @@ app = FastAPI()
 
 @app.get('/')
 def home():
-    return {"hello" :"world!"}
+    return {"message" :"Server is running!"}
 
 @app.post('/predict')
 def accept_text(input : listinput):
