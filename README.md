@@ -99,3 +99,7 @@ sentiment-analysis/
 ├── requirements.txt
 └── README.md
 ```
+## Attribution
+
+*This project uses the "India Reddit Discussion" dataset by Rugved Patil, available [here](https://www.kaggle.com/datasets/devildyno/india-reddit-discussion/) , licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+Changes were made to the dataset for preprocessing and training purposes.*
