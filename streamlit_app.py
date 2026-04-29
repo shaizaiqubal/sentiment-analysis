@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import requests
-import streamlit.components.v1 as components
 from yt_fetcher import get_data
 
 st.set_page_config(page_title="YT Sentiment Lens", page_icon="🎬", layout="centered")
@@ -13,7 +12,7 @@ st.divider()
 
 url = st.text_input("YouTube URL", placeholder="https://www.youtube.com/watch?v=...")
 
-if st.button("Analyse", type="primary", use_container_width=True):
+if st.button("Analyse", type="primary", width="stretch"):
     if not url.strip():
         st.error("Please enter a YouTube URL.")
     else:
@@ -93,14 +92,10 @@ if st.button("Analyse", type="primary", use_container_width=True):
                             hole=0.4,
                         )
                         fig.update_layout(margin=dict(t=0, b=0, l=0, r=0), height=280)
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, width="stretch")
 
                     with vid_col:
-                        components.html(
-                            f'<iframe width="100%" height="280" src="https://www.youtube.com/embed/{vid}" '
-                            f'frameborder="0" allowfullscreen></iframe>',
-                            height=280,
-                        )
+                        st.iframe(f"https://www.youtube.com/embed/{vid}", height=280, width="stretch")
 
                     st.divider()
                     

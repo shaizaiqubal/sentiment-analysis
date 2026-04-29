@@ -23,8 +23,6 @@ except Exception as e:
     logger.error(f"Failed to load model: {e}")
     raise
 
-vectorizer = joblib.load("models/tfidf_vectorizer.pkl")
-
 class textinput(BaseModel):
     text : str
 
